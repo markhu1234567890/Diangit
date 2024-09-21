@@ -25,6 +25,12 @@ void init_repository(const char *path) {
         printf("Failed to create .git/objects directory.\n");
         return;
     }
+    char temp_dir[256];
+    sprintf(temp_dir, "%s/.git/temp", path);
+    if (mkdir(temp_dir, 0755) == -1) {
+        printf("Failed to create .git/temp directory.\n");
+        return;
+    }
     
     // Create the refs directory
     char refs_dir[256];
@@ -50,6 +56,14 @@ void init_repository(const char *path) {
         printf("Failed to create .git/refs/tags directory.\n");
         return;
     }
+    //Create the .gitignore
+    char ignore_dir[256];
+    sprintf(ignore_dir, "%s/.git/.gitignore", path);
+    FILE *file = fopen(ignore_dir, "w"); 
+    if (!file) { 
+        printf("Failed to create .gitignore file.\n"); 
+        return; 
+    } 
 
     create_initial_config(path); 
     printf("Initialized empty Git repository in %s/.git/\n", path); 

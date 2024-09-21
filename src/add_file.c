@@ -16,89 +16,51 @@
 
 void add_file(const char *filename) { 
  unsigned char file_hash[SHA_DIGEST_LENGTH]; 
- // Assume hash_object() calculates file hash 
- if(hash_object(filename, file_hash)!=1){
- return;
- } 
+  if(hash_object(1,filename, file_hash)!=1){//1表示不生成obj对象 其他表示生成
+        return;
+      } 
+ char path[256];
+ sprintf(path,".git/temp/%s",filename);
+ FILE *check_file = fopen(path, "rb");
+    if (!check_file) {
+        // Assume hash_object() calculates file hash 
+       
+        FILE *index_file = fopen(".git/index", "a"); 
+        if (!index_file) { 
+	 printf("Failed to open index file.\n"); 
+ 	return; 
+       } 
  
- FILE *index_file = fopen(".git/index", "a"); 
- if (!index_file) { 
- printf("Failed to open index file.\n"); 
- return; 
- } 
- 
- fprintf(index_file, "%s %02x%02x...\n", filename, file_hash[0], file_hash[1]); // Simplified hash 
- fclose(index_file); 
- printf("Added '%s' to the staging area.\n", filename); 
+	 fprintf(index_file, "%s %02x%02x...\n", filename, file_hash[0], file_hash[1]); // Simplified hash 
+	fclose(index_file); 
+	//printf("Added '%s' to the staging area.\n", filename); 
+    }
+  
+  //printf("Updated '%s' to the staging area.\n", filename); 
+  printf("Added '%s' to the staging area.\n", filename); 
+  
+FILE *file = fopen(path, "w"); 
+ if (!file) { 
+printf("Falied to create temp file.\n"); 
+return; 
+ }
+FILE *sourceFile = fopen(filename, "r");
+if (!sourceFile) {
+perror("Error opening source file");
+return;
 }
-/*
-int hash_object(const char *filename, unsigned char *file_hash) {
-    FILE *file = fopen(filename, "rb");
-    if (!file) {
-        printf("Cannot open file: %s\n", filename);
-        return 0;
+   char buffer[1024];
+    size_t bytesRead;
+
+    while ((bytesRead = fread(buffer, 1, sizeof(buffer), sourceFile)) > 0) {
+        fwrite(buffer, 1, bytesRead, file);
     }
+fclose(sourceFile);
+fclose(file);
+}
 
-    unsigned char hash[EVP_MAX_MD_SIZE];
-    unsigned int hash_len;
-    EVP_MD_CTX *mdctx;
-    const EVP_MD *md;
-    char buffer[1024];
-    size_t bytes_read;
 
-    // Create and initialize a new message digest context
-    mdctx = EVP_MD_CTX_new();
-    if (!mdctx) {
-        fclose(file);
-        printf("Failed to create context\n");
-        return 0;
-    }
-
-    // Use SHA-256 for hashing
-    md = EVP_sha256();
-    if (EVP_DigestInit_ex(mdctx, md, NULL) <= 0) {
-        EVP_MD_CTX_free(mdctx);
-        fclose(file);
-        printf("Failed to initialize digest\n");
-        return 0;
-    }
-
-    // Read the file in chunks and update the hash
-    while ((bytes_read = fread(buffer, 1, sizeof(buffer), file)) > 0) {
-        if (EVP_DigestUpdate(mdctx, buffer, bytes_read) <= 0) {
-            EVP_MD_CTX_free(mdctx);
-            fclose(file);
-            printf("Failed to update digest\n");
-            return 0; 
-        }
-    }
-
-    // Finalize the hash
-    if (EVP_DigestFinal_ex(mdctx, hash, &hash_len) <= 0) {
-        EVP_MD_CTX_free(mdctx);
-        fclose(file);
-        printf("Failed to finalize digest\n");
-        return 0;
-    }
-
-    // Clean up
-    EVP_MD_CTX_free(mdctx);
-    fclose(file);
-
-    // Copy the hash to file_hash
-    if (hash_len <= SHA256_DIGEST_LENGTH) {
-        memcpy(file_hash, hash, hash_len);
-    } else {
-        printf("Hash length is longer than expected\n");
-    }
-    char path[256];
-    snprintf(path, sizeof(path), ".git/objects/%02x", hash[0]);
-    mkdir(path, 0755);
-    snprintf(path + strlen(path), sizeof(path) - strlen(path), "/%02x", hash[1]);
-    store_object(filename, hash);
-    return 1;
-}*/
-int hash_object(const char *filename, unsigned char *file_hash) {
+int hash_object(int f,const char *filename, unsigned char *file_hash) {//f 1表示不生成obj对象 其他表示生成
     EVP_MD_CTX *mdctx;
     const EVP_MD *md;
     unsigned char hash[EVP_MAX_MD_SIZE];
@@ -148,14 +110,13 @@ int hash_object(const char *filename, unsigned char *file_hash) {
         return 0;
     }
 
-    // Example of using the hash, replace with your own logic
+   if(f!=1){
     char path[256];
     snprintf(path, sizeof(path), ".git/objects/%02x", hash[0]);
     mkdir(path, 0755);
     snprintf(path + strlen(path), sizeof(path) - strlen(path), "/%02x", hash[1]);
-    // Assuming store_object is a function you have that takes a filename and hash
     store_object(filename, hash);
-
+    }
     return 1;
 }
 
@@ -238,6 +199,12 @@ void store_object(const char *filename, unsigned char *hash) {
     free(file_content);
     fclose(obj_file);
 }
-
+void rm(const char *filename){
+    if (remove(filename) == 0) {
+        printf("%s deleted successfully.\n",filename);
+    } else {
+        perror("Failed to delete the file or folder");
+    }
+}
 
 

@@ -29,3 +29,13 @@ void show_log(){
  
  fclose(log_file); 
 } 
+void clear_log(){
+ FILE *file = fopen(".git/logs", "w"); 
+  if (!file) { 
+ printf("Falied to clear log.\n"); 
+ return; 
+ } else{
+ printf("Log is cleared.");
+}
+fclose(file);
+}

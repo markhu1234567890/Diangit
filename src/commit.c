@@ -9,15 +9,15 @@
 #include"commit.h"
 #include"add_file.h"
 #define HASH_LENGTH 32 // SHA-256 produces a 32-byte hash
-void update(int f,unsigned char *commit_hash, const char *message){
+void update(int f,unsigned char *commit_hash, const char *message){//1表示进入log 其他表示进入文本
     char path[256];
     if(f==1){
-       snprintf(path, sizeof(path), ".git/objects/%02x", commit_hash[0]);
+       
+    sprintf(path,".git/objects/%c%c/%s.log", commit_hash[0],commit_hash[1],commit_hash+2);
+    }else{
+    snprintf(path, sizeof(path), ".git/objects/%02x", commit_hash[0]);
        snprintf(path + strlen(path), sizeof(path) - strlen(path), "/%02x.log", commit_hash[1]);
     
-    }else{
-    sprintf(path,".git/objects/%c%c/%s.log", commit_hash[0],commit_hash[1],commit_hash+2);
-    //printf("%s",path);
   
     }
  
@@ -48,10 +48,10 @@ void commit(const char *message) {
     // 生成提交哈希
     unsigned char commit_hash[SHA_DIGEST_LENGTH];
     //create_commit_hash(message, commit_hash);
-    hash_object(message, commit_hash);
+    hash_object(0,message, commit_hash);//1表示不生成obj对象 其他表示生成
     char up_message[256];
     sprintf(up_message,"commit %s",message);
-    update(1,commit_hash, up_message);
+    update(0,commit_hash, up_message);//1表示commit
 
     // 记录提交到日志
     log_commit(commit_hash, message);

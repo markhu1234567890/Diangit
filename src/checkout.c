@@ -39,7 +39,7 @@ char* read_object(int f,const char* hash) {
     return content;
 }*/
 
-char* read_object(int f, const char *hash) {
+char* read_object(int f, const char *hash) {//1表示进入log 其他表示进入文本
     char path[256];
     if(f==1){
     snprintf(path, sizeof(path), ".git/objects/%c%c/%s.log", hash[0], hash[1], hash + 2);
@@ -50,13 +50,13 @@ char* read_object(int f, const char *hash) {
 
     gzFile file = gzopen(path, "rb");
     if (!file) {
-        return NULL;  // 文件打开失败，返回 NULL
+        return NULL; 
     }
 
     char *content = malloc(MAX_CONTENT_SIZE);
     if (!content) {
         gzclose(file);
-        return NULL;  // 内存分配失败，返回 NULL
+        return NULL; 
     }
 
     int bytes_read = gzread(file, content, MAX_CONTENT_SIZE - 1);
@@ -64,7 +64,7 @@ char* read_object(int f, const char *hash) {
 
     if (bytes_read < 0) {
         free(content);
-        return NULL;  // 读取错误，返回 NULL
+        return NULL;  
     }
 
     content[bytes_read] = '\0';  // 确保内容是以 null 结尾
@@ -96,7 +96,7 @@ void write_to_working_directory(const char* path, const char* content) {
 }
 
 void print_tree(const char* tree_hash) {
-    char* tree_content = read_object(1,tree_hash);
+    char* tree_content = read_object(1,tree_hash);//1表示进入log 其他表示进入文本
     //printf("----------------------");
     if (!tree_content) {
         printf("Error: Tree object not found.\n");
@@ -107,7 +107,7 @@ void print_tree(const char* tree_hash) {
 }
 
 void checkout(const char* commit_hash) {
-    char* commit_content = read_object(0,commit_hash);
+    char* commit_content = read_object(0,commit_hash);//1表示进入log 其他表示进入文本
   
     
     if (!commit_content) {
@@ -120,7 +120,7 @@ void checkout(const char* commit_hash) {
      printf("%s\n",tree_hash);
     free(commit_content);
 
-    char* tree_content = read_object(0,tree_hash);
+    char* tree_content = read_object(0,tree_hash);//1表示进入log 其他表示进入文本
     if (!tree_content) {
         printf("Error: Tree object not found.\n");
         return;
